@@ -1,6 +1,29 @@
 version: '3.8'
 
 services:
+  # ============================================
+  # Nexus Core Daemon
+  # ============================================
+  nexus-daemon:
+    build:
+      context: ../nexus-daemon
+      dockerfile: Dockerfile
+    container_name: nexus-daemon
+    ports:
+      - "9091:9091"
+    environment:
+      - RUST_LOG=info
+    volumes:
+      - ./config/nexus-daemon.toml:/etc/nexus/config.toml:ro
+    networks:
+      - nexus
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # ============================================
+  # Monitoring Stack
+  # ============================================
   prometheus:
     image: prom/prometheus:v2.53.0
     container_name: nexus-prometheus
@@ -54,7 +77,6 @@ services:
     networks:
       - nexus
 
-  # Optional: Node exporter for host metrics
   node-exporter:
     image: prom/node-exporter:v1.8.2
     container_name: nexus-node-exporter
