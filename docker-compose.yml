@@ -19,7 +19,7 @@ services:
       - "9090:9090"
     restart: unless-stopped
     networks:
-      - nexus-monitoring
+      - nexus
 
   alertmanager:
     image: prom/alertmanager:v0.27.0
@@ -34,7 +34,7 @@ services:
       - "9093:9093"
     restart: unless-stopped
     networks:
-      - nexus-monitoring
+      - nexus
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -52,7 +52,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - nexus-monitoring
+      - nexus
 
   # Optional: Node exporter for host metrics
   node-exporter:
@@ -71,7 +71,7 @@ services:
       - "9100:9100"
     restart: unless-stopped
     networks:
-      - nexus-monitoring
+      - nexus
 
 volumes:
   prometheus_data:
@@ -79,5 +79,6 @@ volumes:
   alertmanager_data:
 
 networks:
-  nexus-monitoring:
+  nexus:
     driver: bridge
+    name: nexus
