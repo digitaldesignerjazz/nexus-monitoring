@@ -1,0 +1,80 @@
+groups:
+  - name: nexus-infrastructure
+    interval: 30s
+    rules:
+      # === Nexus Daemon ===
+      - alert: NexusDaemonDown
+        expr: up{job="nexus-daemon"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Nexus Daemon is down"
+          description: "nexus-daemon on {{ $labels.instance }} has been down for more than 2 minutes."
+
+      # === Mesh Networking ===
+      - alert: MeshLowPeerCount
+        expr: nexus_mesh_connected_peers < 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low number of connected mesh peers"
+          description: "Only {{ $value }} peers connected to Nexus mesh on {{ $labels.instance }}."
+
+      - alert: MeshHighLatency
+        expr: nexus_mesh_peer_latency_seconds > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High mesh peer latency detected"
+          description: "Peer {{ $labels.peer }} has latency > 2s on {{ $labels.instance }}."
+
+      # === Blockchain ===
+      - alert: BlockchainNodeDown
+        expr: up{job="xcoin"} == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "XCoin/QCoin node is down"
+          description: "Blockchain node {{ $labels.instance }} is not responding."
+
+      - alert: BlockchainSyncStalled
+        expr: increase(xcoin_blocks_synced_total[5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Blockchain sync appears stalled"
+          description: "No new blocks synced in the last 10 minutes on {{ $labels.instance }}."
+
+      # === AI Swarm ===
+      - alert: AISwarmLowAgents
+        expr: nexus_ai_active_agents < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI Swarm has very few active agents"
+          description: "Only {{ $value }} AI agents are active in the Nexus swarm."
+
+      # === General Infrastructure ===
+      - alert: HighDiskUsage
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on host"
+          description: "Disk usage on {{ $labels.instance }} is above 85%."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage on {{ $labels.instance }} is above 85%."
